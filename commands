@@ -1,0 +1,51 @@
+GET HELP
+docker -h
+docker [COMMAND] --help
+
+
+Run a command in a new container
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+Options:
+  -t, --tty		Allocate a pseudo-TTY
+  -i, --interactive	Keep STDIN open even if not attached
+  -v, --volume list	Bind mount a volume (default [])
+      --rm		Automatically remove the container when it exits
+      --name string	Assign a name to the container
+Ex:
+  docker run -ti --name myCentOS centos bash
+  docker run -ti --rm -v ~/Tests:/root ubuntu bash
+
+
+Stop one or more running containers
+docker stop [OPTIONS] CONTAINER [CONTAINER...]
+Ex: docker stop myCentOS
+
+
+Start one or more stopped containers
+docker start [OPTIONS] CONTAINER [CONTAINER...]
+Options:
+  -a, --attach		Attach STDOUT/STDERR and forward signals
+Ex: docker start -a myCentOS
+
+
+Attach to a running container
+docker attach [OPTIONS] CONTAINER
+Ex: docker attach myCentOS
+
+
+List containers
+docker ps [OPTIONS]
+Options:
+  -a, --all             Show all containers (default shows just running)
+  -f, --filter filter   Filter output based on conditions provided
+      --format string   Pretty-print containers using a Go template
+      --help            Print usage
+  -n, --last int        Show n last created containers (includes all states) (default -1)
+  -l, --latest          Show the latest created container (includes all states)
+
+
+Remove one or more containers
+docker rm [OPTIONS] CONTAINER [CONTAINER...]
+Options:
+  -f, --force     	Force the removal of a running container (uses SIGKILL)
+Ex: docker rm -f myCentOS
