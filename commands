@@ -1,51 +1,349 @@
-GET HELP
-docker -h
-docker [COMMAND] --help
+================================================================================
+GETTING HELP
+================================================================================
 
+Print basic syntax information
 
-Run a command in a new container
-docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
-Options:
-  -t, --tty		Allocate a pseudo-TTY
-  -i, --interactive	Keep STDIN open even if not attached
-  -v, --volume list	Bind mount a volume (default [])
-      --rm		Automatically remove the container when it exits
-      --name string	Assign a name to the container
+Syntax:
+  docker help or docker -h
+
+--------------------------------------------------------------------------------
+
+Print usage of a specific command
+
+Syntax:
+  docker help [COMMAND] or docker [COMMAND] --help
+
 Ex:
-  docker run -ti --name myCentOS centos bash
-  docker run -ti --rm -v ~/Tests:/root ubuntu bash
+  docker help exec
+
+================================================================================
 
 
-Stop one or more running containers
-docker stop [OPTIONS] CONTAINER [CONTAINER...]
-Ex: docker stop myCentOS
 
+================================================================================
+DOCKER LIFETIME
+================================================================================
+
+Build an image from a Dockerfile
+
+Syntax:
+  docker build [OPTIONS] PATH | URL | -
+
+Options:
+  -t, --tag list            Name and optionally a tag in the 'name:tag' format (default [])
+
+--------------------------------------------------------------------------------
+
+Create a new container
+
+Syntax:
+  docker create [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+Options:
+  -e, --env list            Set environment variables (default [])
+  -h, --hostname string	    Container host name
+  -i, --interactive         Keep STDIN open even if not attached
+      --link list	          Add link to another container (default [])
+  -m, --memory string	      Memory limit
+      --name string	        Assign a name to the container
+  -p, --publish list	      Publish a container's port(s) to the host (default [])
+      --rm	                Automatically remove the container when it exits
+  -t, --tty			            Allocate a pseudo-TTY
+  -u, --user string		      Username or UID (format: <name|uid>[:<group|gid>])
+  -v, --volume list		      Bind mount a volume (default [])
+  -w, --workdir string		  Working directory inside the container
+
+Ex:
+  # create a container named data_container from busy box image that persists folder /root
+  docker create -v /root --name data_container busybox
+
+--------------------------------------------------------------------------------
 
 Start one or more stopped containers
-docker start [OPTIONS] CONTAINER [CONTAINER...]
-Options:
-  -a, --attach		Attach STDOUT/STDERR and forward signals
-Ex: docker start -a myCentOS
 
+Syntax:
+  docker start [OPTIONS] CONTAINER [CONTAINER...]
+
+Options:
+  -a, --attach			        Attach STDOUT/STDERR and forward signals
+
+Ex:
+  docker start -a myCentOS
+
+--------------------------------------------------------------------------------
+
+Run a command in a new container (equivalent to docker create then docker start)
+
+Syntax:
+  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+Options:
+  -d, --detach			        Run container in background and print container ID
+  -e, --env list		        Set environment variables (default [])
+  -h, --hostname string	    Container host name
+  -i, --interactive		      Keep STDIN open even if not attached
+      --link list		        Add link to another container (default [])
+  -m, --memory string		    Memory limit
+      --name string		      Assign a name to the container
+  -p, --publish list		    Publish a container's port(s) to the host (default [])
+      --rm			            Automatically remove the container when it exits
+  -t, --tty			            Allocate a pseudo-TTY
+  -u, --user string		      Username or UID (format: <name|uid>[:<group|gid>])
+  -v, --volume list		      Bind mount a volume (default [])
+  -w, --workdir string		  Working directory inside the container
+
+Ex:
+  # Start redis.docker container using redis image then run redis-cli command in interactive mode
+  docker run -ti --name redis.docker redis
+
+    Equivalent to:
+      docker create -ti --name redis.docker redis
+
+      then
+
+      docker start -a redis.docker
+
+    Test:
+      docker exec -ti redis.docker redis-cli
+
+  # Run mysql container named mysql.docker in background with specified environment variables (MYSQL_DATABASE=my_db and MYSQL_ROOT_PASSWORD=1234)
+  docker run -d --name mysql.docker -e MYSQL_DATABASE=my_db -e MYSQL_ROOT_PASSWORD=1234 mysql
+
+    Equivalent to:
+      docker create --name mysql.docker -e MYSQL_DATABASE=my_db -e MYSQL_ROOT_PASSWORD=1234 mysql
+
+      then
+
+      docker start mysql.docker
+
+    Test:
+      docker exec -ti mysql.docker mysql -u root -p
+
+  # Start a container using mysql image, link to mysql.docker container as db, then execute mysql command with specified arguments (-h db -u root -p)
+  docker run -ti --link mysql.docker:db mysql mysql -h db -u root -p
+
+  # Run bash command using centos image in interactive mode, name it myCentOS
+  docker run -ti --name myCentOS centos bash
+
+  # Run bash command using ubuntu image in interactive mode, remove the image after exit, mount ~/Tests as /root
+  docker run -ti --rm -v ~/Tests:/root ubuntu bash
+
+  # Run tensorflow/tensorflow:latt-py3 container in interactive mode, expose port 8888 to the host as 14141 and persist the directory /notebooks
+  docker run -ti --name tf -p 14141:8888 -v /notebooks tensorflow/tensorflow:latest-py3
+
+    Test:
+      docker stop tf
+      docker start -a tf
+
+--------------------------------------------------------------------------------
+
+Run a command in a running container
+
+Syntax:
+  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+
+Options:
+  -d, --detach              Detached mode: run command in the background
+  -e, --env list            Set environment variables (default [])
+  -i, --interactive         Keep STDIN open even if not attached
+      --privileged          Give extended privileges to the command
+  -t, --tty                 Allocate a pseudo-TTY
+  -u, --user string         Username or UID (format: <name|uid>[:<group|gid>])
+
+Ex:
+  # Run the command `redis-cli -a 1234` in redis.cb container in interactive mode
+  docker exec -ti redis.cb redis-cli -a 1234
+
+--------------------------------------------------------------------------------
 
 Attach to a running container
-docker attach [OPTIONS] CONTAINER
-Ex: docker attach myCentOS
 
+Syntax:
+  docker attach [OPTIONS] CONTAINER
 
-List containers
-docker ps [OPTIONS]
+Ex:
+  docker attach myCentOS
+
+--------------------------------------------------------------------------------
+
+Fetch the logs of a container
+
+Syntax:
+  docker logs [OPTIONS] CONTAINER
+
 Options:
-  -a, --all             Show all containers (default shows just running)
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print containers using a Go template
-      --help            Print usage
-  -n, --last int        Show n last created containers (includes all states) (default -1)
-  -l, --latest          Show the latest created container (includes all states)
+      --details        	    Show extra details provided to logs
+  -f, --follow         	    Follow log output
+      --since string   	    Show logs since timestamp
+      --tail string    	    Number of lines to show from the end of the logs (default "all")
+  -t, --timestamps     	    Show timestamps
 
+Ex:
+  docker logs --details --follow redis.cb
+
+--------------------------------------------------------------------------------
+
+Display a live stream of container(s) resource usage statistics
+
+Syntax:
+  docker stats [OPTIONS] [CONTAINER...]
+
+Options:
+  -a, --all             	  Show all containers (default shows just running)
+      --format string   	  Pretty-print images using a Go template
+      --no-stream       	  Disable streaming stats and only pull the first result
+
+Ex:
+  docker stats -a redis.cb
+
+--------------------------------------------------------------------------------
+
+Stop one or more running containers
+
+Syntax:
+  docker stop [OPTIONS] CONTAINER [CONTAINER...]
+
+Options:
+  -t, --time int            Seconds to wait for stop before killing it (default 10)
+
+Ex:
+  docker stop myCentOS
+
+--------------------------------------------------------------------------------
+
+Restart one or more containers
+
+Syntax:
+  docker restart [OPTIONS] CONTAINER [CONTAINER...]
+
+Options:
+  -t, --time int   		      Seconds to wait for stop before killing the container (default 10)
+
+Ex:
+  docker restart node.cb
+
+--------------------------------------------------------------------------------
+
+Kill one or more running containers
+
+Syntax:
+  docker kill [OPTIONS] CONTAINER [CONTAINER...]
+
+Options:
+  -s, --signal string   	  Signal to send to the container (default "KILL")
+
+Ex:
+  docker kill redis.cb
+
+--------------------------------------------------------------------------------
 
 Remove one or more containers
-docker rm [OPTIONS] CONTAINER [CONTAINER...]
+
+Syntax:
+  docker rm [OPTIONS] CONTAINER [CONTAINER...]
+
 Options:
-  -f, --force     	Force the removal of a running container (uses SIGKILL)
-Ex: docker rm -f myCentOS
+  -f, --force     		      Force the removal of a running container (uses SIGKILL)
+
+Ex:
+  docker rm -f myCentOS
+
+================================================================================
+
+
+
+================================================================================
+DOCKER INFORMATION
+================================================================================
+
+Display system-wide information
+
+Syntax:
+  docker info [OPTIONS]
+
+Options:
+  -f, --format string   	  Format the output using the given Go template
+
+Ex:
+  docker info
+
+--------------------------------------------------------------------------------
+
+Show the Docker version information
+
+Syntax:
+  docker version [OPTIONS]
+
+Options:
+  -f, --format string   	  Format the output using the given Go template
+
+Ex:
+  docker version
+
+--------------------------------------------------------------------------------
+
+List images
+
+Syntax:
+  docker images [OPTIONS] [REPOSITORY[:TAG]]
+
+Options:
+  -a, --all             	  Show all images (default hides intermediate images)
+      --digests         	  Show digests
+  -f, --filter filter   	  Filter output based on conditions provided
+      --format string   	  Pretty-print images using a Go template
+
+Ex:
+  docker images -a
+
+--------------------------------------------------------------------------------
+
+List containers
+
+Syntax:
+  docker ps [OPTIONS]
+
+Options:
+  -a, --all             	  Show all containers (default shows just running)
+  -f, --filter filter   	  Filter output based on conditions provided
+      --format string   	  Pretty-print containers using a Go template
+  -n, --last int        	  Show n last created containers (includes all states) (default -1)
+  -l, --latest          	  Show the latest created container (includes all states)
+
+Ex:
+  docker ps -a
+
+--------------------------------------------------------------------------------
+
+Return low-level information on Docker objects
+
+Syntax:
+  docker inspect [OPTIONS] NAME|ID [NAME|ID...]
+
+Options:
+  -f, --format string   	  Format the output using the given Go template
+
+Ex:
+  # Inspect the redis.cb container
+  docker inspect redis.cb
+
+  # Inspect exposed ports of the reds.cb container
+  docker inspect -f "ports: {{.Config.ExposedPorts}}" redis.cb
+
+--------------------------------------------------------------------------------
+
+List port mappings or a specific mapping for the container
+
+Syntax:
+  docker port CONTAINER [PRIVATE_PORT[/PROTO]]
+
+EX:
+  # List port mappings for the redis.cb container
+  docker port redis.cb
+
+================================================================================
+
+
+docker-compose up —build -d
+docker-compose down
